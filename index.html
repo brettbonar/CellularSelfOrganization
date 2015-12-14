@@ -1,37 +1,25 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en-us">
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Identification of Self-Organizing Multicellular Systems : ">
-
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
-
-    <title>Identification of Self-Organizing Multicellular Systems</title>
+    <meta charset="UTF-8">
+    <title>Identification of Self-Organizing Multicellular Systems by brettbonar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
   </head>
-
   <body>
+    <section class="page-header">
+      <h1 class="project-name">Identification of Self-Organizing Multicellular Systems</h1>
+      <h2 class="project-tagline"></h2>
+      <a href="https://github.com/brettbonar/CellularSelfOrganization" class="btn">View on GitHub</a>
+      <a href="https://github.com/brettbonar/CellularSelfOrganization/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/brettbonar/CellularSelfOrganization/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/brettbonar/CellularSelfOrganization">View on GitHub</a>
-
-          <h1 id="project_title">Identification of Self-Organizing Multicellular Systems</h1>
-          <h2 id="project_tagline"></h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/brettbonar/CellularSelfOrganization/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/brettbonar/CellularSelfOrganization/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h3>
+    <section class="main-content">
+      <h3>
 <a id="cellular-self-organization" class="anchor" href="#cellular-self-organization" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cellular Self-Organization</h3>
 
 <p>Self-organization could be defined as the undirected movement of a chaotic structure into an ordered one. In a biological system, this may be seen as a formation of cells gradually reforms into a regular arrangement. Such arrangements could be lattices or grids that are identified as having regular or repeating patterns. These systems may prove valuable to disciplines such as medicine and bioengineering. Determining the behaviors with which to compose a self-organizing system is a nontrivial
@@ -43,12 +31,16 @@ task. While many such systems have already been identified, the considerable amo
 <p>Self-organizing biological systems are potentially useful in medical and bioengineering fields.</p>
 
 <h3>
-<a id="what" class="anchor" href="#what" aria-hidden="true"><span class="octicon octicon-link"></span></a>What</h3>
+<a id="method" class="anchor" href="#method" aria-hidden="true"><span class="octicon octicon-link"></span></a>Method</h3>
 
-<p>This project implements a simple hill climber written on Python that works on a limited set of cellular behaviors from the CompuCell3D simulator. An evaluation of the set complexity of the simulated result of a biological system is used to determine self-organization and regularity (i.e. the fitness function).</p>
+<p>This project implements a simple hill climber written in Python that works on a limited set of cellular behaviors from the CompuCell3D simulator. An evaluation of the set complexity of the simulated result of a biological system is used to determine self-organization and regularity (i.e. the fitness function).</p>
+
+<p>Description of set complexity.</p>
+
+<p>Sample of contact parameters</p>
 
 <h3>
-<a id="initial-results" class="anchor" href="#initial-results" aria-hidden="true"><span class="octicon octicon-link"></span></a>Initial Results</h3>
+<a id="results" class="anchor" href="#results" aria-hidden="true"><span class="octicon octicon-link"></span></a>Results</h3>
 
 <p>The following charts show some of the results of a few initial runs of the hill climber. The algorithm was run for 50 iterations. The initial configuration was random and each subsequent iteration modified a random parameter (currently limited to modifying only contact energy, but will be expanded to other parameters). The CompuCell3D simulator was run on each iteration for 1000 MCS and the final output evaluated for complexity.</p>
 
@@ -65,6 +57,14 @@ task. While many such systems have already been identified, the considerable amo
 
 <p><img src="http://i1379.photobucket.com/albums/ah131/bbonar/BestComplexity_zps3kxmqejb.png" alt=""></p>
 
+<h1>
+<a id="instructions" class="anchor" href="#instructions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Instructions</h1>
+
+<ol>
+<li>Install CompuCell3D simulator</li>
+<li>
+</ol>
+
 <h3>
 <a id="remaining-work" class="anchor" href="#remaining-work" aria-hidden="true"><span class="octicon octicon-link"></span></a>Remaining Work</h3>
 
@@ -73,18 +73,15 @@ task. While many such systems have already been identified, the considerable amo
 <li>Expand the number of variable parameters, refine parameter ranges.</li>
 <li>Clean up code, remove hardcoded paths and variables.</li>
 </ul>
-      </section>
-    </div>
 
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Identification of Self-Organizing Multicellular Systems maintained by <a href="https://github.com/brettbonar">brettbonar</a></p>
-        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/brettbonar/CellularSelfOrganization">Identification of Self-Organizing Multicellular Systems</a> is maintained by <a href="https://github.com/brettbonar">brettbonar</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
-    </div>
 
-    
+    </section>
 
+  
   </body>
 </html>
