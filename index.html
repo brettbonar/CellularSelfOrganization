@@ -22,8 +22,9 @@
       <h3>
 <a id="cellular-self-organization" class="anchor" href="#cellular-self-organization" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cellular Self-Organization</h3>
 
-<p>Self-organization could be defined as the undirected movement of a chaotic structure into an ordered one. In a biological system, this may be seen as a formation of cells gradually reforms into a regular arrangement. Such arrangements could be lattices or grids that are identified as having regular or repeating patterns. These systems may prove valuable to disciplines such as medicine and bioengineering. Determining the behaviors with which to compose a self-organizing system is a nontrivial
-task. While many such systems have already been identified, the considerable amount of traits comprising cellular behaviors would make an exhaustive search of undiscovered systems impossible.</p>
+<p>Self-organization could be defined as the undirected movement of a chaotic structure into an ordered one. In a biological system, this may be seen as a formation of cells gradually reforms into a regular arrangement. Such arrangements could be lattices or grids that are identified as having regular or repeating patterns. These systems may prove valuable to disciplines such as medicine and bioengineering. Determining the behaviors with which to compose a self-organizing system is a nontrivial task. While many such systems have already been identified, the considerable amount of traits comprising cellular behaviors would make an exhaustive search of undiscovered systems impossible.</p>
+
+<p>Add images of organized cells.</p>
 
 <h3>
 <a id="why" class="anchor" href="#why" aria-hidden="true"><span class="octicon octicon-link"></span></a>Why?</h3>
@@ -35,6 +36,27 @@ task. While many such systems have already been identified, the considerable amo
 
 <p>This project implements a simple hill climber written in Python that works on a limited set of cellular behaviors from the CompuCell3D simulator. An evaluation of the set complexity of the simulated result of a biological system is used to determine self-organization and regularity (i.e. the fitness function).</p>
 
+<p>While CompuCell3D supports 3D cells, this simulation is limited to 2D for the purpose of simplicity and simulation speed. The CompuCell3D simulator supports a large number of cell attributes and behaviors. These have been narrowed down to a few variable parameters:</p>
+
+<ul>
+<li>Contact (adhesion) energy between cells</li>
+<li>Diffusion field parameters:
+
+<ul>
+<li>Decay rate</li>
+<li>Diffusion constant</li>
+<li>Secretion rate for each cell type</li>
+</ul>
+</li>
+<li>Chemotaxis for each cell type</li>
+</ul>
+
+<p>The diffusion field and chemotaxis parameters are directly related. This project uses the CompuCell3D DiffusionSolverFE plugin. The secretion rate is the amount of chemical field that is secreted by each cell type. Chemotaxis then defines the rate at which cells are attracted to the chemical field. Chemotaxis is one of the most important and useful cellular properties for creating self-organizing biological systems.</p>
+
+<p>The hill climber begins with a random configuration of the above parameters in addition to a random number of cell types (currently just one or two) and random volume for each type of cell. Number of cell types and cell volume are not changed between iterations. The initial configuration is run through the CompuCell3D simulator four times with different random seeds to generate four distinct results. The set complexity is calculated using the four final outputs as the set.</p>
+
+<p>The algorithm then repeatedly performs a random walk one of the variable parameters. If the resulting set complexity of the simulation has a higher complexity than the previous best then this is taken as the new best result. This is repeated until no improvements have been made for a number of iterations, at which point the hill climber terminates and the latest best is taken as the most complex result.</p>
+
 <p>Description of set complexity.</p>
 
 <p>Sample of contact parameters</p>
@@ -42,7 +64,10 @@ task. While many such systems have already been identified, the considerable amo
 <h3>
 <a id="results" class="anchor" href="#results" aria-hidden="true"><span class="octicon octicon-link"></span></a>Results</h3>
 
-<p>The following charts show some of the results of a few initial runs of the hill climber. The algorithm was run for 50 iterations. The initial configuration was random and each subsequent iteration modified a random parameter (currently limited to modifying only contact energy, but will be expanded to other parameters). The CompuCell3D simulator was run on each iteration for 1000 MCS and the final output evaluated for complexity.</p>
+<p>The following charts show some of the results of a few initial runs of the hill climber. The CompuCell3D simulator was run on each iteration for 1000 MCS and the final output of four runs with different random seeds were evaluated for complexity.</p>
+
+<p>TODO video of a single simulation with high complexity
+TODO video slideshow of improvement over time</p>
 
 <p>Improvement of complexity over time (iteration of hill climber).
 <img src="http://i1379.photobucket.com/albums/ah131/bbonar/Complexity_zpsb9aegc57.png" alt=""></p>
@@ -57,6 +82,13 @@ task. While many such systems have already been identified, the considerable amo
 
 <p><img src="http://i1379.photobucket.com/albums/ah131/bbonar/BestComplexity_zps3kxmqejb.png" alt=""></p>
 
+<h3>
+<a id="issues" class="anchor" href="#issues" aria-hidden="true"><span class="octicon octicon-link"></span></a>Issues</h3>
+
+<p>While this method works well in distinguishing between random and organized systems, it does not always identify what we may consider to be the most "complex" result. Take the following two images for example. Both were generated throughout the course of one run of the hill climber. The first is an ideal result in which cells form an organized network pattern. The second is less interesting, but still considered to be more "complex". This is believed to be an inherent flaw in using a general method for determining complexity.</p>
+
+<p>Future work may include developing more specialized algorithms to better identify complex patterns as we perceive them.</p>
+
 <h1>
 <a id="instructions" class="anchor" href="#instructions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Instructions</h1>
 
@@ -64,15 +96,6 @@ task. While many such systems have already been identified, the considerable amo
 <li>Install CompuCell3D simulator</li>
 <li>
 </ol>
-
-<h3>
-<a id="remaining-work" class="anchor" href="#remaining-work" aria-hidden="true"><span class="octicon octicon-link"></span></a>Remaining Work</h3>
-
-<ul>
-<li>Increase number of iterations and MCS steps</li>
-<li>Expand the number of variable parameters, refine parameter ranges.</li>
-<li>Clean up code, remove hardcoded paths and variables.</li>
-</ul>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/brettbonar/CellularSelfOrganization">Identification of Self-Organizing Multicellular Systems</a> is maintained by <a href="https://github.com/brettbonar">brettbonar</a>.</span>
