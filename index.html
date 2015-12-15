@@ -22,17 +22,9 @@
       <h3>
 <a id="cellular-self-organization" class="anchor" href="#cellular-self-organization" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cellular Self-Organization</h3>
 
-<p>Self-organization could be defined as the undirected movement of a chaotic structure into an ordered one. In a biological system, this may be seen as a formation of cells gradually reforms into a regular arrangement. Such arrangements could be lattices or grids that are identified as having regular or repeating patterns. These systems may prove valuable to disciplines such as medicine and bioengineering. Determining the behaviors with which to compose a self-organizing system is a nontrivial task. While many such systems have already been identified, the considerable amount of traits comprising cellular behaviors would make an exhaustive search of undiscovered systems impossible.
-[NCD(x,y) = \frac{C(x+y) - min(C(x), C(y))}{max(C(x), C(y))}]</p>
+<p>Self-organization could be defined as the undirected movement of a chaotic structure into an ordered one. In a biological system, this may be seen as a formation of cells gradually reforms into a regular arrangement. Such arrangements could be lattices or grids that are identified as having regular or repeating patterns. These systems may prove valuable to disciplines such as medicine and bioengineering. Determining the behaviors with which to compose a self-organizing system is a nontrivial task. While many such systems have already been identified, the considerable amount of traits comprising cellular behaviors would make an exhaustive search of undiscovered systems impossible.</p>
 
-
-
-<p>Add images of organized cells.</p>
-
-<h3>
-<a id="why" class="anchor" href="#why" aria-hidden="true"><span class="octicon octicon-link"></span></a>Why?</h3>
-
-<p>Self-organizing biological systems are potentially useful in medical and bioengineering fields.</p>
+<p><a href="https://www.dropbox.com/s/wlvgpivsng3nzui/NetworkExample.avi?dl=0">Self-Organization of a Multicellular System</a></p>
 
 <h3>
 <a id="method" class="anchor" href="#method" aria-hidden="true"><span class="octicon octicon-link"></span></a>Method</h3>
@@ -54,53 +46,50 @@
 <li>Chemotaxis for each cell type</li>
 </ul>
 
-<p>The diffusion field and chemotaxis parameters are directly related. This project uses the CompuCell3D DiffusionSolverFE plugin. The secretion rate is the amount of chemical field that is secreted by each cell type. Chemotaxis then defines the rate at which cells are attracted to the chemical field. Chemotaxis is one of the most important and useful cellular properties for creating self-organizing biological systems.</p>
+<p>The diffusion field and chemotaxis parameters are directly related. This project uses the CompuCell3D DiffusionSolverFE plugin to simulate chemotaxis. The secretion rate is the amount of chemical field that is secreted by each cell type. Chemotaxis then defines the rate at which cells are attracted to the chemical field. Chemotaxis is one of the most important and useful cellular properties for creating self-organizing biological systems.</p>
 
-<p>The hill climber begins with a random configuration of the above parameters in addition to a random number of cell types (currently just one or two) and random volume for each type of cell. Number of cell types and cell volume are not changed between iterations. The initial configuration is run through the CompuCell3D simulator four times with different random seeds to generate four distinct results. The set complexity is calculated using the four final outputs as the set.</p>
+<p>The hill climber begins with a random configuration of the above parameters in addition to a random number of cell types (currently just one or two) and random volume for each type of cell. Number of cell types and cell volume are not changed between iterations. The initial configuration is run through the CompuCell3D simulator four times with different random seeds to generate four distinct results. Each simulation is run for 1000 Monte Carlo Steps (MCS). MCS steps is The set complexity is calculated using the four final outputs as the set.</p>
 
 <p>The algorithm then repeatedly performs a random walk one of the variable parameters. If the resulting set complexity of the simulation has a higher complexity than the previous best then this is taken as the new best result. This is repeated until no improvements have been made for a number of iterations, at which point the hill climber terminates and the latest best is taken as the most complex result.</p>
 
-<p>Description of set complexity.</p>
+<p>The method used to calculate set complexity is as given by Dr. Flann and adapted to use image compression techniques on Dr. Flann's advice. The calculation of set complexity depends on the Kolmogorov complexity of a set of objects (in this case images output by the simulator), which can be estimated by the Normalized Compression Distance (NCD) with the following formula:</p>
 
-<p>Sample of contact parameters</p>
+<p><img src="https://cloud.githubusercontent.com/assets/7144970/11803555/4693a18c-a2b9-11e5-9a94-21f043708796.png" alt="ncd"></p>
+
+<p>Where C(x) and C(y) are the compressed sizes of two input images and C(x+y) is the compressed size of the concatentation of both images.</p>
+
+<p>Set complexity can then be defined as an evaluation of the NCD for each pair of inputs:</p>
+
+<p><img src="https://cloud.githubusercontent.com/assets/7144970/11803550/3e8ff85a-a2b9-11e5-9fa2-b8c4fe471ddb.png" alt="setcomplexity"></p>
+
+<p>This method of evaluating set complexity was used on a subset of the problem domain. Two identical cell types were created (Cell 1 and Cell 2) and the contact energy between these two types was set to 10. The following heat map was generated by testing the effects of change in contact energy between cells of the same type. Note that simulations were run only for test cases under the diagonal and the remainder was extrapolated. Since all parameters other than contact energy were identical, there is no reason to expect (0,2) to differ in any way from (2,0). Red in this case indicates a high set complexity result.</p>
+
+<p><img src="https://cloud.githubusercontent.com/assets/7144970/11802384/62b5513c-a2ad-11e5-878a-50ce23e840c4.png" alt="contactheatmap"></p>
 
 <h3>
 <a id="results" class="anchor" href="#results" aria-hidden="true"><span class="octicon octicon-link"></span></a>Results</h3>
 
-<p>The following charts show some of the results of a few initial runs of the hill climber. The CompuCell3D simulator was run on each iteration for 1000 MCS and the final output of four runs with different random seeds were evaluated for complexity.</p>
+<p>The following are examples of runs of the hill climber. The CompuCell3D simulator was run on each iteration for 1000 MCS and the final output of four runs with different random seeds were evaluated for complexity.</p>
 
-<p><a href="https://www.dropbox.com/s/n7m1bdoooxsxebt/HillClimberExample.avi?dl=0">Simulation Video</a></p>
+<p>An example of the improvement in complexity over each iteration. Note how it quickly plateaus with only minor improvements from then on.</p>
 
-<p>TODO video of a single simulation with high complexity
-TODO video slideshow of improvement over time</p>
+<p><img src="https://cloud.githubusercontent.com/assets/7144970/11802268/17daad5c-a2ac-11e5-8c77-e847d73e918f.png" alt="complexitychart"></p>
 
-<p>Improvement of complexity over time (iteration of hill climber).
-<img src="http://i1379.photobucket.com/albums/ah131/bbonar/Complexity_zpsb9aegc57.png" alt=""></p>
+<p>The following video is a slideshow of the outputs of a single run of the hill climber. Each image shows the final output after 1000 MCS. You may observe the system gradually begin to show more interesting results.</p>
 
-<p>This shows the results of the simulation of the initial configuration after 1000 MCS
-<img src="http://i1379.photobucket.com/albums/ah131/bbonar/Worst_zpsdvknzinq.png" alt=""></p>
+<p><a href="https://www.dropbox.com/s/n7m1bdoooxsxebt/HillClimberExample.avi?dl=0">Hill Climber Output</a></p>
 
-<p>And the results of the best simulation (highest complexity) after 1000 MCS
-<img src="http://i1379.photobucket.com/albums/ah131/bbonar/Best_zpsu7zmfcbq.png" alt=""></p>
-
-<p>This second chart shows the value of the best complexity over time. Note how it quickly reaches a local maxima. This is generally not ideal as it potentially excludes better results. This should be able to be solved by increasing the number of iterations, simulation steps, expanding the list of variable parameters, and refining valid parameter ranges.</p>
-
-<p><img src="http://i1379.photobucket.com/albums/ah131/bbonar/BestComplexity_zps3kxmqejb.png" alt=""></p>
+<p>The following are a few other results that (I think) are interesting:
+<img src="https://cloud.githubusercontent.com/assets/7144970/11803862/1781fc88-a2bc-11e5-8892-ef1587f44a49.png" alt="example2">
+<img src="https://cloud.githubusercontent.com/assets/7144970/11803863/1863228a-a2bc-11e5-904b-dfdea11df876.png" alt="example3">
+<img src="https://cloud.githubusercontent.com/assets/7144970/11803864/195edbf2-a2bc-11e5-99ba-1506df56e964.png" alt="example4">
+<img src="https://cloud.githubusercontent.com/assets/7144970/11803872/2abac19a-a2bc-11e5-8f71-fbdfd7c6e763.png" alt="networkend"></p>
 
 <h3>
 <a id="issues" class="anchor" href="#issues" aria-hidden="true"><span class="octicon octicon-link"></span></a>Issues</h3>
 
-<p>While this method works well in distinguishing between random and organized systems, it does not always identify what we may consider to be the most "complex" result. Take the following two images for example. Both were generated throughout the course of one run of the hill climber. The first is an ideal result in which cells form an organized network pattern. The second is less interesting, but still considered to be more "complex". This is believed to be an inherent flaw in using a general method for determining complexity.</p>
-
-<p>Future work may include developing more specialized algorithms to better identify complex patterns as we perceive them.</p>
-
-<h1>
-<a id="instructions" class="anchor" href="#instructions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Instructions</h1>
-
-<ol>
-<li>Install CompuCell3D simulator</li>
-<li>
-</ol>
+<p>While this method works well in distinguishing between random and organized systems, it does not always identify what we may consider to be the most ideal result. The following image, for example, is the result of a number of iterations. The set complexity function believes it to be interesting even though we may not think so. This is likely an inherent flaw in using a general method for determining complexity. Future work may include developing more specialized algorithms to better identify specific patterns.
+<img src="https://cloud.githubusercontent.com/assets/7144970/11803885/42cdab4e-a2bc-11e5-8385-6608928d9f68.png" alt="badexample"></p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/brettbonar/CellularSelfOrganization">Identification of Self-Organizing Multicellular Systems</a> is maintained by <a href="https://github.com/brettbonar">brettbonar</a>.</span>
