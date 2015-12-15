@@ -1,0 +1,319 @@
+﻿from __future__ import division
+import sys
+from os import environ
+from os import getcwd
+import string
+
+sys.path.append(environ["PYTHON_MODULE_PATH"])
+sys.path.append(environ["SWIG_LIB_INSTALL_DIR"])
+
+import subprocess
+import os
+import glob
+import random
+random.seed()
+from PIL import Image
+import CompuCellSetup
+from XMLUtils import *
+import CC3DXML
+from CC3DXML import *
+  
+import copy
+import setComplexity
+import time
+import shutil
+
+path = "C:/Dev/CS6600/Project/Test/Output/"
+#path = "C:/Users/Brett/CC3DWorkspace"
+simulationSize = 125
+numCellTypes = random.randint(1, 2)
+ncells = 100#random.randint(100,200)
+
+def randomFloatStr(start, end):
+  return str(random.uniform(start, end))
+
+def randomIntStr(start, end):
+  return str(random.randint(start, end))
+
+def getChemotaxisLambda():
+  MAX_CHEMOTAXIS_LAMBDA = 20
+  return randomIntStr(0, MAX_CHEMOTAXIS_LAMBDA)
+
+def getCellContact():
+  MIN = -10
+  MAX = 30
+  return randomIntStr(MIN, MAX)
+
+def getMediumCellContact():
+  MIN = 0
+  MAX = 30
+  return randomIntStr(MIN, MAX)
+
+def addChemotaxis(CompuCell3DElmnt):
+  PluginElmnt_4=CompuCell3DElmnt.ElementCC3D("Plugin",{"Name":"Chemotaxis"})
+  # Select chemical field?
+  ChemicalFieldElmnt=PluginElmnt_4.ElementCC3D("ChemicalField",{"Name":"FDS","Source":"DiffusionSolverFE"})
+    
+  # Define chemotaxis for cell type
+  # TODO: iterate over cell types
+  addedChemo = False
+  for cell in range(1, numCellTypes + 1):
+    if random.choice([True, False]):
+      addedChemo = True
+      ChemicalFieldElmnt.ElementCC3D("ChemotaxisByType",{"Lambda":getChemotaxisLambda(),"Type":str(cell)})
+    elif cell == numCellTypes and addedChemo == False:
+      # Always add chemotaxis for at least one cell type
+      ChemicalFieldElmnt.ElementCC3D("ChemotaxisByType",{"Lambda":getChemotaxisLambda(),"Type":"1"})
+
+    
+  # Define chemical field?
+  SteppableElmnt=CompuCell3DElmnt.ElementCC3D("Steppable",{"Type":"DiffusionSolverFE"})
+  DiffusionFieldElmnt=SteppableElmnt.ElementCC3D("DiffusionField",{"Name":"FDS"})
+  DiffusionDataElmnt=DiffusionFieldElmnt.ElementCC3D("DiffusionData")
+  DiffusionDataElmnt.ElementCC3D("FieldName",{},"FDS")
+  DiffusionDataElmnt.ElementCC3D("GlobalDiffusionConstant",{},randomFloatStr(0, 1.0))
+  DiffusionDataElmnt.ElementCC3D("GlobalDecayConstant",{},randomFloatStr(0, 1.0))
+  
+  secretionDataElement = DiffusionFieldElmnt.ElementCC3D("SecretionData")
+  addedSecretion = False
+  for cell in range(1, numCellTypes + 1):
+    if random.choice([True, False]):
+      addedSecretion = True
+      secretionDataElement.ElementCC3D("Secretion", {"Type":str(cell)}, randomFloatStr(0.0, 100))
+    elif cell == numCellTypes and addedSecretion == False:
+      # Always add secretion for at least one cell type
+      secretionDataElement.ElementCC3D("Secretion", {"Type":"1"}, randomFloatStr(0.0, 100))
+
+  #BoundaryConditionsElmnt=DiffusionFieldElmnt.ElementCC3D("BoundaryConditions")
+  #PlaneElmnt=BoundaryConditionsElmnt.ElementCC3D("Plane",{"Axis":"X"})
+  #PlaneElmnt.ElementCC3D("ConstantValue",{"PlanePosition":"Min","Value":"10.0"})
+  #PlaneElmnt.ElementCC3D("ConstantValue",{"PlanePosition":"Max","Value":"5.0"})
+  #PlaneElmnt_1=BoundaryConditionsElmnt.ElementCC3D("Plane",{"Axis":"Y"})
+  #PlaneElmnt_1.ElementCC3D("ConstantDerivative",{"PlanePosition":"Min","Value":"10.0"})
+  #PlaneElmnt_1.ElementCC3D("ConstantDerivative",{"PlanePosition":"Max","Value":"5.0"})
+
+def updateSecretion(newNode):
+  diffusionSolver = newNode.getFirstElement("Steppable", CC3DXML.MapStrStr({"Type": "DiffusionSolverFE"}))
+  diffusionField = diffusionSolver.getFirstElement("DiffusionField")
+  secretionData = diffusionField.getFirstElement("SecretionData")
+  nodes = secretionData.getElements("Secretion")
+  random.choice(nodes).updateElementValue(randomFloatStr(0.0, 100.0))
+
+def updateChemotaxisLambda(newNode):
+  chemotaxis = newNode.getFirstElement("Plugin", CC3DXML.MapStrStr({"Name": "Chemotaxis"}))
+  chemicalField = chemotaxis.getFirstElement("ChemicalField")
+  random.choice(chemicalField.getElements("ChemotaxisByType")).updateElementAttributes(CC3DXML.MapStrStr({"Lambda": getChemotaxisLambda()}))
+  
+def updateChemicalFieldConstants(newNode):
+  diffusionSolver = newNode.getFirstElement("Steppable", CC3DXML.MapStrStr({"Type": "DiffusionSolverFE"}))
+  diffusionField = diffusionSolver.getFirstElement("DiffusionField")
+  diffusionData = diffusionField.getFirstElement("DiffusionData")
+  
+  if random.choice([True, False]):
+    diffusionData.getFirstElement("GlobalDiffusionConstant").updateElementValue(randomFloatStr(0, 1.0))
+  else:
+    diffusionData.getFirstElement("GlobalDecayConstant").updateElementValue(randomFloatStr(0, 1.0))
+
+def configureSimulation():    
+  CompuCell3DElmnt=ElementCC3D("CompuCell3D",{"Revision":"20150808","Version":"3.7.4"})
+  PottsElmnt=CompuCell3DElmnt.ElementCC3D("Potts")
+  PottsElmnt.ElementCC3D("Dimensions",{"x":str(simulationSize),"y":str(simulationSize),"z":"1"})
+  PottsElmnt.ElementCC3D("Steps",{},"1010")
+  PottsElmnt.ElementCC3D("Temperature",{},"10.0")
+  PottsElmnt.ElementCC3D("NeighborOrder",{},"2")
+  PottsElmnt.ElementCC3D("RandomSeed",{},str(random.randint(1, 999999)))
+  SettingsPlugin=CompuCell3DElmnt.ElementCC3D("Plugin",{"Name":"PlayerSettings"})
+  SettingsPlugin.ElementCC3D("VisualControl",{"ScreenshotFrequency":"1000"})
+  PluginElmnt=CompuCell3DElmnt.ElementCC3D("Plugin",{"Name":"CellType"})
+  PluginElmnt.ElementCC3D("CellType",{"TypeId":"0","TypeName":"Medium"})
+    
+  # Define cell types
+  # TODO use variable ratio of cell types
+  for cell in range(1, numCellTypes + 1):
+      PluginElmnt.ElementCC3D("CellType",{"TypeId":str(cell),"TypeName":str(cell)})
+    
+  PluginElmnt_1=CompuCell3DElmnt.ElementCC3D("Plugin",{"Name":"Volume"})
+    
+  # Define volume for cell types
+  for cell in range(1, numCellTypes + 1):
+    volume = 50#random.randint(25, 50)
+    lambdaVolume = volume / 2#randomIntStr(0, 100)
+    PluginElmnt_1.ElementCC3D("VolumeEnergyParameters",{"CellType":str(cell),"LambdaVolume": str(lambdaVolume), "TargetVolume": str(volume)})
+    
+    
+  # Define surface for cell types
+  PluginElmnt_2=CompuCell3DElmnt.ElementCC3D("Plugin",{"Name":"Surface"})
+  for cell in range(1, numCellTypes + 1):
+      PluginElmnt_2.ElementCC3D("SurfaceEnergyParameters",{"CellType":str(cell),"LambdaSurface":"2.0","TargetSurface":"25"})
+    
+  #CompuCell3DElmnt.ElementCC3D("Plugin",{"Name":"CenterOfMass"})
+  PluginElmnt_3=CompuCell3DElmnt.ElementCC3D("Plugin",{"Name":"Contact"})
+  PluginElmnt_3.ElementCC3D("Energy",{"Type1":"Medium","Type2":"Medium"},"0.0")
+    
+  # Define contact for cell types
+  for cell in range(1, numCellTypes + 1):
+      PluginElmnt_3.ElementCC3D("Energy",{"Type1":"Medium","Type2":str(cell)}, getMediumCellContact())
+      for cell2 in range(cell, numCellTypes + 1):
+          PluginElmnt_3.ElementCC3D("Energy",{"Type1":str(cell),"Type2":str(cell2)}, getCellContact())
+  PluginElmnt_3.ElementCC3D("NeighborOrder",{},"2")
+    
+  if random.choice([True, False]):
+    addChemotaxis(CompuCell3DElmnt)
+
+  # Define initialization parameters
+  SteppableElmnt_1=CompuCell3DElmnt.ElementCC3D("Steppable",{"Type":"RandomFieldInitializer"})
+  SteppableElmnt_1.ElementCC3D("offset",{"x":"10","y":"10","z":"0"})
+  SteppableElmnt_1.ElementCC3D("growthsteps",{},"10")
+  SteppableElmnt_1.ElementCC3D("order",{},"2")
+  SteppableElmnt_1.ElementCC3D("types",{},",".join(str(i) for i in range(1, numCellTypes + 1)))
+  SteppableElmnt_1.ElementCC3D("ncells",{},str(ncells))
+  SteppableElmnt_1.ElementCC3D("seed",{},randomIntStr(1, 999999))
+  #SteppableElmnt_1=CompuCell3DElmnt.ElementCC3D("Steppable",{"Type":"UniformInitializer"})
+  #RegionElmnt=SteppableElmnt_1.ElementCC3D("Region")
+  #RegionElmnt.ElementCC3D("BoxMin",{"x":"10","y":"10","z":"0"})
+  #RegionElmnt.ElementCC3D("BoxMax",{"x":str(simulationSize - 10),"y":str(simulationSize - 10),"z":"1"})
+  #RegionElmnt.ElementCC3D("Gap",{},"5")
+  #RegionElmnt.ElementCC3D("Width",{},str(width))
+  #RegionElmnt.ElementCC3D("Types",{},",".join(str(i) for i in range(1, numCellTypes + 1)))
+ 
+  CompuCell3DElmnt.CC3DXMLElement.saveXML("C:/Dev/CS6600/Project/Test/Simulation/NewSimulation.xml")
+  return CompuCell3DElmnt
+
+def updateContact(newNode):
+  max = 30
+  contact = newNode.getFirstElement("Plugin", CC3DXML.MapStrStr({"Name": "Contact"}))
+  nodes = [node for node in contact.getElements("Energy") if node.getAttribute("Type2") != "Medium"]
+  newContact = 0
+  if node.getAttribute("Type1") == "Medium":
+    newContact = getMediumCellContact()
+  else:
+    newContact = getCellContact()
+  random.choice(nodes).updateElementValue(newContact)
+
+  ##cellType1 = random.randint(1, numCellTypes + 1)
+  #cellType1 = random.randint(1, numCellTypes)
+  #type1 = str(cellType1)
+  #if cellType1 > numCellTypes:
+  #  type1 = "Medium"
+  #  max = 30
+  #cellType2 = randomIntStr(1, numCellTypes)
+  #type2 = str(cellType2)
+  #contact = newNode.getFirstElement("Plugin", CC3DXML.MapStrStr({"Name": "Contact"}))
+  #updateNode = contact.getFirstElement("Energy", CC3DXML.MapStrStr({ "Type1":type1, "Type2":type2 }))
+  #if updateNode == None:
+  #  updateNode = contact.getFirstElement("Energy", CC3DXML.MapStrStr({ "Type1":type2, "Type2":type1 }))
+  #updateNode.updateElementValue(randomIntStr(0, max))
+
+def updateSurface(newNode):
+  cellType = random.randint(1, numCellTypes)
+  surface = newNode.getFirstElement("Plugin", CC3DXML.MapStrStr({"Name":"Surface"}))
+  surfaceParams = surface.getFirstElement("SurfaceEnergyParameters", CC3DXML.MapStrStr({"CellType": str(cellType)}))
+  surfaceParams.updateElementAttributes(CC3DXML.MapStrStr({ "TargetSurface": randomIntStr(12, 25) }))
+
+def newSeed(node):
+  converter = Xml2Obj()
+  newNode = converter.ParseString(node)
+  newNode.getFirstElement("Potts").getFirstElement("RandomSeed").updateElementValue(str(random.randint(1, 999999)))
+  initializer = newNode.getFirstElement("Steppable", CC3DXML.MapStrStr({"Type": "RandomFieldInitializer" }))
+  initializer.getFirstElement("seed").updateElementValue(randomIntStr(1, 999999))
+
+  newNode.saveXML("C:/Dev/CS6600/Project/Test/Simulation/NewSimulation.xml")
+
+def randomWalk(node):
+  converter = Xml2Obj()
+  newNode = converter.ParseString(node)
+
+  if (newNode.getFirstElement("Plugin", CC3DXML.MapStrStr({"Name": "Chemotaxis"})) != None):
+    choice = random.randint(1, 4)
+    if choice == 1:
+      updateContact(newNode)
+    elif choice == 2:
+      updateChemotaxisLambda(newNode)
+    elif choice == 3:
+      updateChemicalFieldConstants(newNode)
+    elif choice == 4:
+      updateSecretion(newNode)
+  else:
+    updateContact(newNode)
+
+  newNode.saveXML("C:/Dev/CS6600/Project/Test/Simulation/NewSimulation.xml")
+  
+  return newNode.getCC3DXMLElementString()
+    
+def getFiles():
+  all_subdirs = [os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
+  latest_subdir = max(all_subdirs, key=os.path.getmtime)
+  files = glob.glob(latest_subdir + "/*.png")
+  #files.sort(key=os.path.getmtime)
+  return files
+
+def testNode(node, path, iter):
+  #xmlFile = open("C:/Dev/CS6600/Project/Test/Simulation/NewSimulation.xml", "w+")
+  #xmlFile.write(node.getCC3DXMLElementString())
+  #xmlFile.close()
+  #subprocess.call("C:/CompuCell3D/runScript.bat -i C:\\Dev\\CS6600\\Project\\Test\\Test.cc3d -f 1000 --exitWhenDone")
+  numIterations = 4
+  files = []
+  for i in range(numIterations):
+    newSeed(node)
+    outputPath = path + "/" + str(iter) + "-" + str(i)
+    command = "C:/CompuCell3D/compucell3d.bat --exitWhenDone -i C:/Dev/CS6600/Project/Test/Test.cc3d -o " + outputPath
+    subprocess.call(command)
+    print(command)
+    files.append(max(getFiles(), key=os.path.getmtime))
+  return (setComplexity.setComplexity(files, path), files[0])
+  #return os.path.getsize(file)
+
+def writeBest(path, node, value, bestPng):
+  bestFile = open(path + "/Best.txt", "a+")
+  bestFile.write("%s\n" % value)
+  bestFile.close()
+  xmlFile = open(path + "/Best.xml", "w+")
+  xmlFile.write(node)
+  xmlFile.close()
+  shutil.copyfile(bestPng, path + "/Best.png")
+  
+def writeComplexity(path, value):
+  bestFile = open(path + "/Complexity.txt", "a+")
+  bestFile.write("%s\n" % value)
+  bestFile.close()
+
+def run():
+  import time
+  global path
+  path = "C:/Dev/CS6600/Project/Test/Output/" + str(int(time.time()))
+  if not os.path.exists(path):
+    os.makedirs(path)
+  iteration = 0
+  element = configureSimulation()
+  currentNode = element.CC3DXMLElement.getCC3DXMLElementString()
+  currentComplexity, bestFile = testNode(currentNode, path, iteration)
+
+  writeBest(path, currentNode, currentComplexity, bestFile)
+  writeComplexity(path, currentComplexity)  
+
+  bestCount = 1 # number of iterations that best has not improved
+  while bestCount < 20:
+    iteration += 1
+    newNode = randomWalk(currentNode)
+    # TRICKY: attempt at avoiding CC3D freeze/crash
+    time.sleep(1)
+    newComplexity, bestFile = testNode(newNode, path, iteration)
+    writeComplexity(path, newComplexity)
+    if (newComplexity > currentComplexity):
+      writeBest(path, newNode, newComplexity, bestFile)
+      bestCount = 0
+      currentNode = newNode
+      currentComplexity = newComplexity
+    bestCount += 1
+
+  return currentNode
+
+while True:
+  run()
+
+
+#file2, size2 = run()
+#print(setComplexity(files))
+#file = max(files, key=os.path.getmtime)
+#print(os.path.getsize(file))
