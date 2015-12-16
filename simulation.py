@@ -247,7 +247,34 @@ def getFiles():
   #files.sort(key=os.path.getmtime)
   return files
 
+#http://stackoverflow.com/questions/1359383/python-run-a-process-and-kill-it-if-it-doesnt-end-within-one-hour
+def wait_timeout(proc, seconds):
+  """Wait for a process to finish, or raise exception after timeout"""
+  start = time.time()
+  end = start + seconds
+  interval = min(seconds / 1000.0, .25)
+
+  while True:
+    result = proc.poll()
+    if result is not None:
+      return result
+    if time.time() >= end:
+      raise RuntimeError("Process timed out")
+    time.sleep(interval)
+
+def invokeCommand(command):
+  proc = subprocess.Popen(command)
+  try:
+    wait_timeout(proc, 120)
+  except RuntimeError:
+    invokeCommand(command)
+  
+  #from easyprocess import EasyProcess
+  #result = EasyProcess(command).call(timeout=20)
+  #print(result)
+
 def testNode(node, path, iter):
+
   #xmlFile = open("C:/Dev/CS6600/Project/Test/Simulation/NewSimulation.xml", "w+")
   #xmlFile.write(node.getCC3DXMLElementString())
   #xmlFile.close()
@@ -258,10 +285,9 @@ def testNode(node, path, iter):
     newSeed(node)
     outputPath = path + "/" + str(iter) + "-" + str(i)
     command = "C:/CompuCell3D/compucell3d.bat --exitWhenDone -i C:/Dev/CS6600/Project/Test/Test.cc3d -o " + outputPath
-    subprocess.call(command)
-    print(command)
+    invokeCommand(command)
     files.append(max(getFiles(), key=os.path.getmtime))
-  return (setComplexity.setComplexity(files, path), files[0])
+  return (setComplexity.setComplexityGray(files, path), files[0])
   #return os.path.getsize(file)
 
 def writeBest(path, node, value, bestPng):
@@ -293,11 +319,9 @@ def run():
   writeComplexity(path, currentComplexity)  
 
   bestCount = 1 # number of iterations that best has not improved
-  while bestCount < 20:
+  while bestCount < 10:
     iteration += 1
     newNode = randomWalk(currentNode)
-    # TRICKY: attempt at avoiding CC3D freeze/crash
-    time.sleep(1)
     newComplexity, bestFile = testNode(newNode, path, iteration)
     writeComplexity(path, newComplexity)
     if (newComplexity > currentComplexity):
@@ -311,9 +335,3 @@ def run():
 
 while True:
   run()
-
-
-#file2, size2 = run()
-#print(setComplexity(files))
-#file = max(files, key=os.path.getmtime)
-#print(os.path.getsize(file))

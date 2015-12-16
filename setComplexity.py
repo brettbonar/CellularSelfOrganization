@@ -14,17 +14,10 @@ import glob
 import random
 random.seed()
 from PIL import Image
-    
-lowest = 1.0
-highest = 0.0
 
 def getNcd(file1, file2, path):
-  global lowest
-  global highest
-
   size1 = os.path.getsize(file1)
   size2 = os.path.getsize(file2)
-
 
   image1 = Image.open(file1)
   image2 = Image.open(file2)
@@ -42,57 +35,74 @@ def getNcd(file1, file2, path):
   newImage.paste(image1, (0, 0))
   newImage.paste(image2, (x, 0))
   newImage.save(path + "/testimage.png", "PNG")
-  #newSize = os.path.getsize(path + "/testimage.png")
   newSize = os.path.getsize(path + "/testimage.png")
 
-
-  #print(size1)
-  #print(size2)
-  #print(newSize)
-
-  print(newSize)
-  print(size1)
-  print(size2)
-
   ncd = (newSize - min(size1, size2)) / (max(size1, size2))
-  if (ncd < lowest):
-    lowest = ncd
-    shutil.copyfile(path + "/testimage.png", path + "/lowest.png")
-  if (ncd > highest):
-    highest = ncd
-    shutil.copyfile(path + "/testimage.png", path + "/highest.png")
-  print(ncd)
+  #if (ncd < lowest):
+  #  lowest = ncd
+  #  shutil.copyfile(path + "/testimage.png", path + "/lowest.png")
+  #if (ncd > highest):
+  #  highest = ncd
+  #  shutil.copyfile(path + "/testimage.png", path + "/highest.png")
+
   return ncd
 
-def getNcd2(file1, file2, path):
-  size1 = getCSize2(file1, path)
-  size2 = getCSize2(file2, path)
+def getNcdGray(file1, file2, path):
+  size1 = getSizeGray(file1, path)
+  size2 = getSizeGray(file2, path)
+
+  image1 = Image.open(file1).convert("L")
+  image2 = Image.open(file2).convert("L")
+
+  x, y = image1.size
+  newImage = Image.new(image1.mode, (x * 2, y))
+  newImage.paste(image1, (0, 0))
+  newImage.paste(image2, (x, 0))
+  newImage.save(path + "/testimage.png", "PNG")
+  newSize = os.path.getsize(path + "/testimage.png")
+
+  ncd = (newSize - min(size1, size2)) / (max(size1, size2))
+
+  print(ncd)
+
+  return ncd
+
+def getNcdBz2(file1, file2, path):
+  size1 = getCSizeBz2(file1, path)
+  size2 = getCSizeBz2(file2, path)
 
   with open(path + "/concatFile.test", "wb") as outfile:
     outfile.write(open(file1, "rb").read())
     outfile.write(open(file2, "rb").read())
     outfile.close()
 
-  newSize = getCSize2(path + "/concatFile.test", path)
-
-  print(size1)
-  print(size2)
-  print(newSize)
+  newSize = getCSizeBz2(path + "/concatFile.test", path)
 
   ncd = (newSize - min(size1, size2)) / (max(size1, size2))
 
-  print(ncd)
+  return ncd
+
+def getNcdZip(file1, file2, path):
+  size1 = getCSizeZip(file1, path)
+  size2 = getCSizeZip(file2, path)
+
+  with open(path + "/concatFile.test", "wb") as outfile:
+    outfile.write(open(file1, "rb").read())
+    outfile.write(open(file2, "rb").read())
+    outfile.close()
+
+  newSize = getCSizeZip(path + "/concatFile.test", path)
+
+  ncd = (newSize - min(size1, size2)) / (max(size1, size2))
+
   return ncd
 
 def getJpegNcd(file1, file2, path):
-  global lowest
-  global highest
-
   size1 = getJpegSize(file1, path)
   size2 = getJpegSize(file2, path)
 
-  image1 = Image.open(file1)
-  image2 = Image.open(file2)
+  image1 = Image.open(file1).convert("L")
+  image2 = Image.open(file2).convert("L")
 
   #x, y = image1.size
   #newImage = Image.new(image1.mode, (x, y * 2))
@@ -106,22 +116,19 @@ def getJpegNcd(file1, file2, path):
   newImage = Image.new(image1.mode, (x * 2, y))
   newImage.paste(image1, (0, 0))
   newImage.paste(image2, (x, 0))
-  newImage.save(path + "/testimage.jpeg")
-  newSize = os.path.getsize(path + "/testimage.jpeg")
-
-  print(size1)
-  print(size2)
-  print(newSize)
+  newImage.save(path + "/testimage.jpg", "JPEG", quality=10)
+  newSize = os.path.getsize(path + "/testimage.jpg")
 
   ncd = (newSize - min(size1, size2)) / (max(size1, size2))
-  if (ncd < lowest):
-    lowest = ncd
-    shutil.copyfile(path + "/testimage.jpeg", path + "/lowest.jpeg")
-  if (ncd > highest):
-    highest = ncd
-    shutil.copyfile(path + "/testimage.jpeg", path + "/highest.jpeg")
-
+  #if (ncd < lowest):
+  #  lowest = ncd
+  #  shutil.copyfile(path + "/testimage.jpeg", path + "/lowest.jpeg")
+  #if (ncd > highest):
+  #  highest = ncd
+  #  shutil.copyfile(path + "/testimage.jpeg", path + "/highest.jpeg")
+  
   print(ncd)
+
   return ncd
 
 
@@ -130,25 +137,30 @@ def getJpegNcd(file1, file2, path):
 #  with open(path + "/testC", "wb") as out_file:
 #      out_file.write(compressed)
 
-#  return os.path.getsize(path + "/testC")
+#  return os.path.getsize(path + "/testC
+
+def getSizeGray(file, path):
+  image = Image.open(file).convert("L")
+  image.save(path + "/testimage.png", "PNG")
+  return os.path.getsize(path + "/testimage.png")
 
 def getJpegSize(file, path):
-  image = Image.open(file)
-  image.save(path + "/testimage.jpg")
+  image = Image.open(file).convert("L")
+  image.save(path + "/testimage.jpg", "JPEG", quality=10)
   return os.path.getsize(path + "/testimage.jpg")
 
-def getCSize(file, path):
+def getCSizeBz2(file, path):
   with open(file, "rb") as in_file:
-    compressed = zlib.compress(in_file.read(), 9)
+    compressed = bz2.compress(in_file.read(), 1)
 
   with open(path + "/testC", "wb") as out_file:
       out_file.write(compressed)
 
   return os.path.getsize(path + "/testC")
 
-def getCSize2(file, path):
+def getCSizeZip(file, path):
   with open(file, "rb") as in_file:
-    compressed = bz2.compress(in_file.read(), 9)
+    compressed = zlip.compress(in_file.read(), 1)
 
   with open(path + "/testC", "wb") as out_file:
       out_file.write(compressed)
@@ -163,18 +175,26 @@ def setComplexityJpeg(files, path):
       if file1 != file2:
         ncd = getJpegNcd(file1, file2, path)
         sumFiles += size1 * ncd * (1 - ncd)
-  print(sumFiles)
+  return (1 / (len(files) * (len(files) - 1))) * sumFiles
+
+def setComplexityZip(files, path):
+  sumFiles = 0
+  for file1 in files:
+    size1 = getCSizeZip(file1, path)
+    for file2 in files:
+      if file1 != file2:
+        ncd = getNcdZip(file1, file2, path)
+        sumFiles += size1 * ncd * (1 - ncd)
   return (1 / (len(files) * (len(files) - 1))) * sumFiles
 
 def setComplexityBz2(files, path):
   sumFiles = 0
   for file1 in files:
-    size1 = getCSize2(file1, path)
+    size1 = getCSizeBz2(file1, path)
     for file2 in files:
       if file1 != file2:
-        ncd = getNcd2(file1, file2, path)
+        ncd = getNcdBz2(file1, file2, path)
         sumFiles += size1 * ncd * (1 - ncd)
-  print(sumFiles)
   return (1 / (len(files) * (len(files) - 1))) * sumFiles
 
 def setComplexitySimple(files, path):
@@ -185,7 +205,6 @@ def setComplexitySimple(files, path):
       if file1 != file2:
         ncd = getNcd(file1, file2, path)
         sumFiles += ncd * (1 - ncd)
-  print(sumFiles)
   return (1 / (len(files) * (len(files) - 1))) * sumFiles
 
 def setComplexity(files, path):
@@ -196,9 +215,18 @@ def setComplexity(files, path):
     for file2 in files:
       if file1 != file2:
         ncd = getNcd(file1, file2, path)
-        #sumFiles += size1 * ncd * (1 - ncd)
-        sumFiles += math.log(size1) * ncd * (1 - ncd)
-  print(sumFiles)
+        sumFiles += size1 * ncd * (1 - ncd)
+  return (1 / (len(files) * (len(files) - 1))) * sumFiles
+
+def setComplexityGray(files, path):
+  import math
+  sumFiles = 0
+  for file1 in files:
+    size1 = getSizeGray(file1, path)
+    for file2 in files:
+      if file1 != file2:
+        ncd = getNcdGray(file1, file2, path)
+        sumFiles += size1 * ncd * (1 - ncd)
   return (1 / (len(files) * (len(files) - 1))) * sumFiles
 
 def getFiles():
@@ -211,22 +239,4 @@ def getFiles():
 if __name__ == "__main__":
   path = sys.argv[1]
   files = glob.glob(path + "/**/*.png")
-  print(files)
-  files.sort(key=os.path.getmtime)
-
-  testoutput = open(path + "/testoutput.txt", "w")
-  #numSets = len(files) - 4
-  #for i in range(0, numSets):
-  #  filesSet = files[i:i+4]
-  #  if (i == numSets - 1):
-  #    filesSet = files[-4:]
-  #  print(setComplexity(filesSet), file=testoutput)
-
   print(setComplexity(files, path))
-
-  #numSets = len(files) - 2
-  #for i in range(0, numSets):
-  #  print(getNcd(files[i], files[i+1]), file=testoutput)
-
-  #for file in files:
-  #  print(1 / os.path.getsize(file), file=testoutput)
