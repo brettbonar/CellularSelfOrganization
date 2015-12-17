@@ -23,12 +23,6 @@ import setComplexity
 import time
 import shutil
 
-path = "C:/Dev/CS6600/Project/Test/Output/"
-#path = "C:/Users/Brett/CC3DWorkspace"
-simulationSize = 125
-numCellTypes = random.randint(1, 2)
-ncells = 100#random.randint(100,200)
-
 def randomFloatStr(start, end):
   return str(random.uniform(start, end))
 
@@ -49,7 +43,7 @@ def getMediumCellContact():
   MAX = 30
   return randomIntStr(MIN, MAX)
 
-def addChemotaxis(CompuCell3DElmnt):
+def addChemotaxis(CompuCell3DElmnt, config):
   PluginElmnt_4=CompuCell3DElmnt.ElementCC3D("Plugin",{"Name":"Chemotaxis"})
   # Select chemical field?
   ChemicalFieldElmnt=PluginElmnt_4.ElementCC3D("ChemicalField",{"Name":"FDS","Source":"DiffusionSolverFE"})
@@ -57,16 +51,16 @@ def addChemotaxis(CompuCell3DElmnt):
   # Define chemotaxis for cell type
   # TODO: iterate over cell types
   addedChemo = False
-  for cell in range(1, numCellTypes + 1):
+  for cell in range(1, config["numCellTypes"] + 1):
     if random.choice([True, False]):
       addedChemo = True
       ChemicalFieldElmnt.ElementCC3D("ChemotaxisByType",{"Lambda":getChemotaxisLambda(),"Type":str(cell)})
-    elif cell == numCellTypes and addedChemo == False:
+    elif cell == config["numCellTypes"] and addedChemo == False:
       # Always add chemotaxis for at least one cell type
       ChemicalFieldElmnt.ElementCC3D("ChemotaxisByType",{"Lambda":getChemotaxisLambda(),"Type":"1"})
 
     
-  # Define chemical field?
+  # Define chemical field
   SteppableElmnt=CompuCell3DElmnt.ElementCC3D("Steppable",{"Type":"DiffusionSolverFE"})
   DiffusionFieldElmnt=SteppableElmnt.ElementCC3D("DiffusionField",{"Name":"FDS"})
   DiffusionDataElmnt=DiffusionFieldElmnt.ElementCC3D("DiffusionData")
@@ -76,11 +70,11 @@ def addChemotaxis(CompuCell3DElmnt):
   
   secretionDataElement = DiffusionFieldElmnt.ElementCC3D("SecretionData")
   addedSecretion = False
-  for cell in range(1, numCellTypes + 1):
+  for cell in range(1, config["numCellTypes"] + 1):
     if random.choice([True, False]):
       addedSecretion = True
       secretionDataElement.ElementCC3D("Secretion", {"Type":str(cell)}, randomFloatStr(0.0, 100))
-    elif cell == numCellTypes and addedSecretion == False:
+    elif cell == config["numCellTypes"] and addedSecretion == False:
       # Always add secretion for at least one cell type
       secretionDataElement.ElementCC3D("Secretion", {"Type":"1"}, randomFloatStr(0.0, 100))
 
@@ -114,10 +108,10 @@ def updateChemicalFieldConstants(newNode):
   else:
     diffusionData.getFirstElement("GlobalDecayConstant").updateElementValue(randomFloatStr(0, 1.0))
 
-def configureSimulation():    
+def configureSimulation(config, path):
   CompuCell3DElmnt=ElementCC3D("CompuCell3D",{"Revision":"20150808","Version":"3.7.4"})
   PottsElmnt=CompuCell3DElmnt.ElementCC3D("Potts")
-  PottsElmnt.ElementCC3D("Dimensions",{"x":str(simulationSize),"y":str(simulationSize),"z":"1"})
+  PottsElmnt.ElementCC3D("Dimensions",{"x":str(config["simulationSize"]),"y":str(config["simulationSize"]),"z":"1"})
   PottsElmnt.ElementCC3D("Steps",{},"1010")
   PottsElmnt.ElementCC3D("Temperature",{},"10.0")
   PottsElmnt.ElementCC3D("NeighborOrder",{},"2")
@@ -129,21 +123,21 @@ def configureSimulation():
     
   # Define cell types
   # TODO use variable ratio of cell types
-  for cell in range(1, numCellTypes + 1):
+  for cell in range(1, config["numCellTypes"] + 1):
       PluginElmnt.ElementCC3D("CellType",{"TypeId":str(cell),"TypeName":str(cell)})
     
   PluginElmnt_1=CompuCell3DElmnt.ElementCC3D("Plugin",{"Name":"Volume"})
     
   # Define volume for cell types
-  for cell in range(1, numCellTypes + 1):
-    volume = 50#random.randint(25, 50)
+  for cell in range(1, config["numCellTypes"] + 1):
+    volume = random.randint(20, 30)
     lambdaVolume = volume / 2#randomIntStr(0, 100)
     PluginElmnt_1.ElementCC3D("VolumeEnergyParameters",{"CellType":str(cell),"LambdaVolume": str(lambdaVolume), "TargetVolume": str(volume)})
     
     
   # Define surface for cell types
   PluginElmnt_2=CompuCell3DElmnt.ElementCC3D("Plugin",{"Name":"Surface"})
-  for cell in range(1, numCellTypes + 1):
+  for cell in range(1, config["numCellTypes"] + 1):
       PluginElmnt_2.ElementCC3D("SurfaceEnergyParameters",{"CellType":str(cell),"LambdaSurface":"2.0","TargetSurface":"25"})
     
   #CompuCell3DElmnt.ElementCC3D("Plugin",{"Name":"CenterOfMass"})
@@ -151,22 +145,22 @@ def configureSimulation():
   PluginElmnt_3.ElementCC3D("Energy",{"Type1":"Medium","Type2":"Medium"},"0.0")
     
   # Define contact for cell types
-  for cell in range(1, numCellTypes + 1):
+  for cell in range(1, config["numCellTypes"] + 1):
       PluginElmnt_3.ElementCC3D("Energy",{"Type1":"Medium","Type2":str(cell)}, getMediumCellContact())
-      for cell2 in range(cell, numCellTypes + 1):
+      for cell2 in range(cell, config["numCellTypes"] + 1):
           PluginElmnt_3.ElementCC3D("Energy",{"Type1":str(cell),"Type2":str(cell2)}, getCellContact())
   PluginElmnt_3.ElementCC3D("NeighborOrder",{},"2")
     
-  if random.choice([True, False]):
-    addChemotaxis(CompuCell3DElmnt)
+  #if random.choice([True, False]):
+  addChemotaxis(CompuCell3DElmnt, config)
 
   # Define initialization parameters
   SteppableElmnt_1=CompuCell3DElmnt.ElementCC3D("Steppable",{"Type":"RandomFieldInitializer"})
   SteppableElmnt_1.ElementCC3D("offset",{"x":"10","y":"10","z":"0"})
   SteppableElmnt_1.ElementCC3D("growthsteps",{},"10")
   SteppableElmnt_1.ElementCC3D("order",{},"2")
-  SteppableElmnt_1.ElementCC3D("types",{},",".join(str(i) for i in range(1, numCellTypes + 1)))
-  SteppableElmnt_1.ElementCC3D("ncells",{},str(ncells))
+  SteppableElmnt_1.ElementCC3D("types",{},",".join(str(i) for i in range(1, config["numCellTypes"] + 1)))
+  SteppableElmnt_1.ElementCC3D("ncells",{},str(config["ncells"]))
   SteppableElmnt_1.ElementCC3D("seed",{},randomIntStr(1, 999999))
   #SteppableElmnt_1=CompuCell3DElmnt.ElementCC3D("Steppable",{"Type":"UniformInitializer"})
   #RegionElmnt=SteppableElmnt_1.ElementCC3D("Region")
@@ -174,14 +168,17 @@ def configureSimulation():
   #RegionElmnt.ElementCC3D("BoxMax",{"x":str(simulationSize - 10),"y":str(simulationSize - 10),"z":"1"})
   #RegionElmnt.ElementCC3D("Gap",{},"5")
   #RegionElmnt.ElementCC3D("Width",{},str(width))
-  #RegionElmnt.ElementCC3D("Types",{},",".join(str(i) for i in range(1, numCellTypes + 1)))
+  #RegionElmnt.ElementCC3D("Types",{},",".join(str(i) for i in range(1, config["numCellTypes"] + 1)))
  
-  CompuCell3DElmnt.CC3DXMLElement.saveXML("C:/Dev/CS6600/Project/Test/Simulation/NewSimulation.xml")
+  # TRICKY: need to saveXML from here. For some reason saving after returning results in a blank file.
+  CompuCell3DElmnt.CC3DXMLElement.saveXML(path + "/simulation.xml")
+
   return CompuCell3DElmnt
 
 def updateContact(newNode):
   max = 30
   contact = newNode.getFirstElement("Plugin", CC3DXML.MapStrStr({"Name": "Contact"}))
+  # Allow updating contact energy between any two cell types except for Medium-Medium
   nodes = [node for node in contact.getElements("Energy") if node.getAttribute("Type2") != "Medium"]
   newContact = 0
   if node.getAttribute("Type1") == "Medium":
@@ -190,36 +187,24 @@ def updateContact(newNode):
     newContact = getCellContact()
   random.choice(nodes).updateElementValue(newContact)
 
-  ##cellType1 = random.randint(1, numCellTypes + 1)
-  #cellType1 = random.randint(1, numCellTypes)
-  #type1 = str(cellType1)
-  #if cellType1 > numCellTypes:
-  #  type1 = "Medium"
-  #  max = 30
-  #cellType2 = randomIntStr(1, numCellTypes)
-  #type2 = str(cellType2)
-  #contact = newNode.getFirstElement("Plugin", CC3DXML.MapStrStr({"Name": "Contact"}))
-  #updateNode = contact.getFirstElement("Energy", CC3DXML.MapStrStr({ "Type1":type1, "Type2":type2 }))
-  #if updateNode == None:
-  #  updateNode = contact.getFirstElement("Energy", CC3DXML.MapStrStr({ "Type1":type2, "Type2":type1 }))
-  #updateNode.updateElementValue(randomIntStr(0, max))
+#def updateSurface(newNode):
+#  cellType = random.randint(1, numCellTypes)
+#  surface = newNode.getFirstElement("Plugin", CC3DXML.MapStrStr({"Name":"Surface"}))
+#  surfaceParams = surface.getFirstElement("SurfaceEnergyParameters", CC3DXML.MapStrStr({"CellType": str(cellType)}))
+#  surfaceParams.updateElementAttributes(CC3DXML.MapStrStr({ "TargetSurface": randomIntStr(12, 25) }))
 
-def updateSurface(newNode):
-  cellType = random.randint(1, numCellTypes)
-  surface = newNode.getFirstElement("Plugin", CC3DXML.MapStrStr({"Name":"Surface"}))
-  surfaceParams = surface.getFirstElement("SurfaceEnergyParameters", CC3DXML.MapStrStr({"CellType": str(cellType)}))
-  surfaceParams.updateElementAttributes(CC3DXML.MapStrStr({ "TargetSurface": randomIntStr(12, 25) }))
-
-def newSeed(node):
+def newSeed(node, path):
   converter = Xml2Obj()
   newNode = converter.ParseString(node)
   newNode.getFirstElement("Potts").getFirstElement("RandomSeed").updateElementValue(str(random.randint(1, 999999)))
   initializer = newNode.getFirstElement("Steppable", CC3DXML.MapStrStr({"Type": "RandomFieldInitializer" }))
   initializer.getFirstElement("seed").updateElementValue(randomIntStr(1, 999999))
+  
+  # TRICKY: need to saveXML from here. For some reason saving after returning results in a blank file.
+  newNode.saveXML(path + "/simulation.xml")
+  return newNode
 
-  newNode.saveXML("C:/Dev/CS6600/Project/Test/Simulation/NewSimulation.xml")
-
-def randomWalk(node):
+def randomWalk(node, path):
   converter = Xml2Obj()
   newNode = converter.ParseString(node)
 
@@ -235,19 +220,21 @@ def randomWalk(node):
       updateSecretion(newNode)
   else:
     updateContact(newNode)
-
-  newNode.saveXML("C:/Dev/CS6600/Project/Test/Simulation/NewSimulation.xml")
   
+  # TRICKY: need to saveXML from here. For some reason saving after returning results in a blank file.
+  newNode.saveXML(path + "/simulation.xml")
+
   return newNode.getCC3DXMLElementString()
-    
-def getFiles():
-  all_subdirs = [os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
-  latest_subdir = max(all_subdirs, key=os.path.getmtime)
-  files = glob.glob(latest_subdir + "/*.png")
-  #files.sort(key=os.path.getmtime)
+  
+# Get the most recent PNG file
+def getFiles(outputPath):
+  #all_subdirs = [os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
+  #latest_subdir = max(all_subdirs, key=os.path.getmtime)
+  #files = glob.glob(latest_subdir + "/*.png")
+  files = glob.glob(outputPath + "/*.png")
   return files
 
-#http://stackoverflow.com/questions/1359383/python-run-a-process-and-kill-it-if-it-doesnt-end-within-one-hour
+# http://stackoverflow.com/questions/1359383/python-run-a-process-and-kill-it-if-it-doesnt-end-within-one-hour
 def wait_timeout(proc, seconds):
   """Wait for a process to finish, or raise exception after timeout"""
   start = time.time()
@@ -265,30 +252,23 @@ def wait_timeout(proc, seconds):
 def invokeCommand(command):
   proc = subprocess.Popen(command)
   try:
-    wait_timeout(proc, 120)
+    # TRICKY: The CC3D simulator occasionally freezes when starting. If the simulation hasn't finished
+    # in 5 minutes then terminate it and start over.
+    wait_timeout(proc, 300)
   except RuntimeError:
     invokeCommand(command)
-  
-  #from easyprocess import EasyProcess
-  #result = EasyProcess(command).call(timeout=20)
-  #print(result)
 
-def testNode(node, path, iter):
-
-  #xmlFile = open("C:/Dev/CS6600/Project/Test/Simulation/NewSimulation.xml", "w+")
-  #xmlFile.write(node.getCC3DXMLElementString())
-  #xmlFile.close()
-  #subprocess.call("C:/CompuCell3D/runScript.bat -i C:\\Dev\\CS6600\\Project\\Test\\Test.cc3d -f 1000 --exitWhenDone")
+def testNode(node, outputPath, simulationPath, iter):
   numIterations = 4
   files = []
   for i in range(numIterations):
-    newSeed(node)
-    outputPath = path + "/" + str(iter) + "-" + str(i)
-    command = "C:/CompuCell3D/compucell3d.bat --exitWhenDone -i C:/Dev/CS6600/Project/Test/Test.cc3d -o " + outputPath
+    newSeed(node, simulationPath)
+    savePath = outputPath + "/" + str(iter) + "-" + str(i)
+    command = environ["PREFIX_CC3D"] + "/compucell3d.bat --exitWhenDone -i " + simulationPath + "/simulation.cc3d -o " + savePath
+    #print(command)
     invokeCommand(command)
-    files.append(max(getFiles(), key=os.path.getmtime))
-  return (setComplexity.setComplexityGray(files, path), files[0])
-  #return os.path.getsize(file)
+    files.append(max(getFiles(savePath), key=os.path.getmtime))
+  return (setComplexity.setComplexity(files, path), files[0])
 
 def writeBest(path, node, value, bestPng):
   bestFile = open(path + "/Best.txt", "a+")
@@ -304,28 +284,39 @@ def writeComplexity(path, value):
   bestFile.write("%s\n" % value)
   bestFile.close()
 
-def run():
-  import time
-  global path
-  path = "C:/Dev/CS6600/Project/Test/Output/" + str(int(time.time()))
-  if not os.path.exists(path):
-    os.makedirs(path)
-  iteration = 0
-  element = configureSimulation()
-  currentNode = element.CC3DXMLElement.getCC3DXMLElementString()
-  currentComplexity, bestFile = testNode(currentNode, path, iteration)
+def getNewConfig():
+  return {
+    "simulationSize": 125,
+    "numCellTypes": random.randint(1, 2),
+    "ncells": 100
+  }
 
-  writeBest(path, currentNode, currentComplexity, bestFile)
-  writeComplexity(path, currentComplexity)  
+def run(path):
+  import time
+  outputPath = path + "/Output/" + str(int(time.time()))
+  simulationPath = path + "/Simulation"
+  if not os.path.exists(outputPath):
+    os.makedirs(outputPath)
+
+  iteration = 0
+
+  config = getNewConfig()
+  element = configureSimulation(config, simulationPath)
+
+  currentNode = element.CC3DXMLElement.getCC3DXMLElementString()
+  currentComplexity, imageFile = testNode(currentNode, outputPath, simulationPath, iteration)
+
+  writeBest(outputPath, currentNode, currentComplexity, imageFile)
+  writeComplexity(outputPath, currentComplexity)  
 
   bestCount = 1 # number of iterations that best has not improved
-  while bestCount < 10:
+  while bestCount < 20:
     iteration += 1
-    newNode = randomWalk(currentNode)
-    newComplexity, bestFile = testNode(newNode, path, iteration)
-    writeComplexity(path, newComplexity)
+    newNode = randomWalk(currentNode, simulationPath)
+    newComplexity, imageFile = testNode(newNode, outputPath, simulationPath, iteration)
+    writeComplexity(outputPath, newComplexity)
     if (newComplexity > currentComplexity):
-      writeBest(path, newNode, newComplexity, bestFile)
+      writeBest(outputPath, newNode, newComplexity, imageFile)
       bestCount = 0
       currentNode = newNode
       currentComplexity = newComplexity
@@ -333,5 +324,7 @@ def run():
 
   return currentNode
 
-while True:
-  run()
+if __name__ == "__main__":
+  path = sys.argv[1]
+  #while True:
+  run(path)

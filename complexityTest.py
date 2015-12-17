@@ -27,18 +27,18 @@ if __name__ == "__main__":
   best3 = 0
   best4 = 0
   best5 = 0
-  #testoutput = open(path + "/complexityTest.txt", "w")
+  testoutput = open(path + "/complexityTest.txt", "w")
 
   iteration = 0
   files = glob.glob(path + "/" + str(iteration) + "-*/*.png")
   while len(files) > 0:
     files.sort(key=os.path.getmtime)
     print(files)
-    #complexity1 = setComplexity.setComplexity(files, path)
+    #complexity1 = setComplexity.setComplexityPng(files, path)
     #complexity2 = setComplexity.setComplexityBz2(files, path)
     #complexity3 = setComplexity.setComplexityJpeg(files, path)
     #complexity4 = setComplexity.setComplexitySimple(files, path)
-    complexity5 = setComplexity.setComplexityGray(files, path)
+    complexity5 = setComplexity.setComplexity(files, path)
     #if (complexity1 > best1):
     #  best1 = complexity1
     #  shutil.copyfile(files[0], path + "/BestPngTest.png")
@@ -54,6 +54,7 @@ if __name__ == "__main__":
     if (complexity5 > best5):
       best5 = complexity5
       shutil.copyfile(files[0], path + "/BestGrayTest.png")
+    testoutput.writelines(str(complexity5) + "\n")
 
     iteration += 1
     files = glob.glob(path + "/" + str(iteration) + "-*/*.png")

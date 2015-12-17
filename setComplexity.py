@@ -15,7 +15,7 @@ import random
 random.seed()
 from PIL import Image
 
-def getNcd(file1, file2, path):
+def getNcdPng(file1, file2, path):
   size1 = os.path.getsize(file1)
   size2 = os.path.getsize(file2)
 
@@ -60,6 +60,7 @@ def getNcdGray(file1, file2, path):
   newImage.paste(image2, (x, 0))
   newImage.save(path + "/testimage.png", "PNG")
   newSize = os.path.getsize(path + "/testimage.png")
+  os.remove(path + "/testimage.png")
 
   ncd = (newSize - min(size1, size2)) / (max(size1, size2))
 
@@ -141,8 +142,12 @@ def getJpegNcd(file1, file2, path):
 
 def getSizeGray(file, path):
   image = Image.open(file).convert("L")
+
   image.save(path + "/testimage.png", "PNG")
-  return os.path.getsize(path + "/testimage.png")
+  size = os.path.getsize(path + "/testimage.png")
+  os.remove(path + "/testimage.png")
+
+  return size
 
 def getJpegSize(file, path):
   image = Image.open(file).convert("L")
@@ -197,28 +202,18 @@ def setComplexityBz2(files, path):
         sumFiles += size1 * ncd * (1 - ncd)
   return (1 / (len(files) * (len(files) - 1))) * sumFiles
 
-def setComplexitySimple(files, path):
-  sumFiles = 0
-  for file1 in files:
-    size1 = os.path.getsize(file1)
-    for file2 in files:
-      if file1 != file2:
-        ncd = getNcd(file1, file2, path)
-        sumFiles += ncd * (1 - ncd)
-  return (1 / (len(files) * (len(files) - 1))) * sumFiles
-
-def setComplexity(files, path):
+def setComplexityPng(files, path):
   import math
   sumFiles = 0
   for file1 in files:
     size1 = os.path.getsize(file1)
     for file2 in files:
       if file1 != file2:
-        ncd = getNcd(file1, file2, path)
+        ncd = getNcdPng(file1, file2, path)
         sumFiles += size1 * ncd * (1 - ncd)
   return (1 / (len(files) * (len(files) - 1))) * sumFiles
 
-def setComplexityGray(files, path):
+def setComplexity(files, path):
   import math
   sumFiles = 0
   for file1 in files:
@@ -228,13 +223,6 @@ def setComplexityGray(files, path):
         ncd = getNcdGray(file1, file2, path)
         sumFiles += size1 * ncd * (1 - ncd)
   return (1 / (len(files) * (len(files) - 1))) * sumFiles
-
-def getFiles():
-  all_subdirs = [os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
-  latest_subdir = max(all_subdirs, key=os.path.getmtime)
-  #files = glob.glob(latest_subdir + "/**/*.png")
-  files = glob.glob(latest_subdir + "/**/*.vtk")
-  return files
 
 if __name__ == "__main__":
   path = sys.argv[1]

@@ -40,7 +40,7 @@ python "%PREFIX_CC3D%\pythonSetupScripts\envVarSanitizer.py" "PATH" >%TMP%\cc3dt
 cd %PREFIX_CC3D%
 
 @SET exit_code=0
-python "C:/Dev/CS6600/Project/Test/simulation.py"
+python %CURRENT_DIRECTORY%/simulation.py %CURRENT_DIRECTORY%
 @SET exit_code= %errorlevel%
 
 goto simulationend

@@ -1,0 +1,59 @@
+<CompuCell3D Revision="20150808" Version="3.7.4">
+   <Potts>
+      <Dimensions x="125" y="125" z="1"/>
+      <Steps>1010</Steps>
+      <Temperature>10.0</Temperature>
+      <NeighborOrder>2</NeighborOrder>
+      <RandomSeed>215933</RandomSeed>
+   </Potts>
+   <Plugin Name="PlayerSettings">
+      <VisualControl ScreenshotFrequency="1000"/>
+   </Plugin>
+   <Plugin Name="CellType">
+      <CellType TypeId="0" TypeName="Medium"/>
+      <CellType TypeId="1" TypeName="1"/>
+      <CellType TypeId="2" TypeName="2"/>
+   </Plugin>
+   <Plugin Name="Volume">
+      <VolumeEnergyParameters CellType="1" LambdaVolume="10.5" TargetVolume="21"/>
+      <VolumeEnergyParameters CellType="2" LambdaVolume="15.0" TargetVolume="30"/>
+   </Plugin>
+   <Plugin Name="Surface">
+      <SurfaceEnergyParameters CellType="1" LambdaSurface="2.0" TargetSurface="25"/>
+      <SurfaceEnergyParameters CellType="2" LambdaSurface="2.0" TargetSurface="25"/>
+   </Plugin>
+   <Plugin Name="Contact">
+      <Energy Type1="Medium" Type2="Medium">0.0</Energy>
+      <Energy Type1="Medium" Type2="1">13</Energy>
+      <Energy Type1="1" Type2="1">14</Energy>
+      <Energy Type1="1" Type2="2">8</Energy>
+      <Energy Type1="Medium" Type2="2">12</Energy>
+      <Energy Type1="2" Type2="2">10</Energy>
+      <NeighborOrder>2</NeighborOrder>
+   </Plugin>
+   <Plugin Name="Chemotaxis">
+      <ChemicalField Name="FDS" Source="DiffusionSolverFE">
+         <ChemotaxisByType Lambda="20" Type="1"/>
+      </ChemicalField>
+   </Plugin>
+   <Steppable Type="DiffusionSolverFE">
+      <DiffusionField Name="FDS">
+         <DiffusionData>
+            <FieldName>FDS</FieldName>
+            <GlobalDiffusionConstant>0.508987792859</GlobalDiffusionConstant>
+            <GlobalDecayConstant>0.606050363807</GlobalDecayConstant>
+         </DiffusionData>
+         <SecretionData>
+            <Secretion Type="1">67.5758029746</Secretion>
+         </SecretionData>
+      </DiffusionField>
+   </Steppable>
+   <Steppable Type="RandomFieldInitializer">
+      <offset x="10" y="10" z="0"/>
+      <growthsteps>10</growthsteps>
+      <order>2</order>
+      <types>1,2</types>
+      <ncells>100</ncells>
+      <seed>785</seed>
+   </Steppable>
+</CompuCell3D>
