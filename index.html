@@ -24,9 +24,7 @@
 
 <p>Self-organization could be defined as the undirected movement of a chaotic structure into an ordered one. In a biological system, this may be seen as a formation of cells gradually reforms into a regular arrangement. Such arrangements could be lattices or grids that are identified as having regular or repeating patterns. Determining the behaviors with which to compose a self-organizing system is a nontrivial task. While many such systems have already been identified, the considerable amount of traits comprising cellular behaviors would make an exhaustive search of undiscovered systems impossible. The ability to discover these types of systems could prove valuable to disciplines such as medicine and bioengineering where regular patterns have real applications.</p>
 
-<p><a href="https://www.dropbox.com/s/wlvgpivsng3nzui/NetworkExample.avi?dl=0">Self-Organization of a Multicellular System</a></p>
-
-<p><img src="https://cloud.githubusercontent.com/assets/7144970/11803872/2abac19a-a2bc-11e5-8f71-fbdfd7c6e763.png" alt="networkend"></p>
+<p><a href="https://www.youtube.com/watch?v=oYwL2J0_ezg"><img src="https://www.youtube.com/watch?v=oYwL2J0_ezg" alt="Self-Organization of a Multicellular System"></a></p>
 
 <h3>
 <a id="goals" class="anchor" href="#goals" aria-hidden="true"><span class="octicon octicon-link"></span></a>Goals</h3>
@@ -109,15 +107,11 @@
 <h3>
 <a id="issues" class="anchor" href="#issues" aria-hidden="true"><span class="octicon octicon-link"></span></a>Issues</h3>
 
-<p>While this method works well in distinguishing between random and organized systems, it does not always identify what we may consider to be the most ideal result. The following image, for example, is the result of a number of iterations. The set complexity function believes it to be interesting even though we may not think so. This is likely an inherent flaw in using a general method for determining complexity. Future work may include developing more specialized algorithms to better identify specific patterns.</p>
+<p>While this method works well in distinguishing between simple and complex systems, it does not always work well identifying organized over random complex patterns. The following image, for example, is the result of a number of iterations and was determined to have a high complexity.</p>
 
 <p><img src="https://cloud.githubusercontent.com/assets/7144970/11803885/42cdab4e-a2bc-11e5-8385-6608928d9f68.png" alt="badexample"></p>
 
-<h3>
-<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
-
-<p>The program runs from a single batch script. This is in order to use the same setup that the CC3D simulator uses (also in a .bat file).
-The one task remaining is to remove some hardcoded file paths for the CC3D script locations and simulator output location.</p>
+<p>The image is clearly random with no discernable pattern or organization. This is likely an inherent flaw in using a general method for determining complexity. Future work may include developing more specialized algorithms to better identify specific patterns.</p>
 
 <h3>
 <a id="future-work" class="anchor" href="#future-work" aria-hidden="true"><span class="octicon octicon-link"></span></a>Future Work</h3>
@@ -125,6 +119,12 @@ The one task remaining is to remove some hardcoded file paths for the CC3D scrip
 <p>Future work may include making the system more configurable. Currently, there is no external control over which cell attributes are modified and to what extent. One user may want to remove chemotaxis and only let contact energy be modified between iterations.</p>
 
 <p>Another future task may be to allow specifying the initial configuration rather than having it randomly generated. This may be useful for situations where someone already has a system and wishes to know how to change this system in a way that results in self-organization.</p>
+
+<h3>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
+
+<p>The program runs from a single batch script. This is in order to use the same setup that the CC3D simulator uses (also in a .bat file).
+The one task remaining is to remove some hardcoded file paths for the CC3D script locations and simulator output location.</p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/brettbonar/CellularSelfOrganization">Identification of Self-Organizing Multicellular Systems</a> is maintained by <a href="https://github.com/brettbonar">brettbonar</a>.</span>
