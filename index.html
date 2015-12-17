@@ -79,6 +79,8 @@
 
 <p><img src="https://cloud.githubusercontent.com/assets/7144970/11859710/f87d6c30-a42a-11e5-98fd-9de4f0b92792.png" alt="contactenergyoutput"></p>
 
+<p>These results show that set complexity is at least a viable method in distinguishing between simple and complex systems.</p>
+
 <h3>
 <a id="results" class="anchor" href="#results" aria-hidden="true"><span class="octicon octicon-link"></span></a>Results</h3>
 
@@ -96,7 +98,7 @@
 
 <p><img src="https://cloud.githubusercontent.com/assets/7144970/11802268/17daad5c-a2ac-11e5-8c77-e847d73e918f.png" alt="complexitychart"></p>
 
-<p>This image shows the advancement of the hill climber with each iteration. Each image shows the final output of that iteration after 1000 MCS. Note how the output begins with very simple organization and gradually evolves into a complex network over several iterations.</p>
+<p>This image shows the advancement of the hill climber with each iteration. Each image shows the final output of that iteration after 1000 MCS. It is interesting to see how the output begins with very simple organization and gradually evolves into a complex network over several iterations.</p>
 
 <p><img src="https://cloud.githubusercontent.com/assets/7144970/11859718/0d88d894-a42b-11e5-9c92-f54a46f5b3b3.png" alt="hillclimberiterations"></p>
 
@@ -110,7 +112,7 @@
 <h3>
 <a id="issues" class="anchor" href="#issues" aria-hidden="true"><span class="octicon octicon-link"></span></a>Issues</h3>
 
-<p>While this method works well in distinguishing between simple and complex systems, it does not always succeed in distinguishing between organized and random complexity. Note the following comparison. One would expect the first image to result in a higher complexity, yet the hill climber continued to search and determined that the second image was better.</p>
+<p>While this method works well in distinguishing between simple and complex systems, it does not always succeed in distinguishing between organized and random complexity. In the following comparison, one would expect the first image to result in a higher complexity, yet the hill climber continued to search and determined that the second image was better.</p>
 
 <p><img src="https://cloud.githubusercontent.com/assets/7144970/11859910/d0290576-a42c-11e5-91f5-d5a63984fa0e.png" alt="badexamplecompare"></p>
 
@@ -126,9 +128,7 @@
 
 <p>Future work may include developing more specialized algorithms to better identify specific patterns, or searching for different methods of compression that result in a wider range of NCD values.</p>
 
-<p>Make the system more configurable. Currently, there is no external control over which cell attributes are modified and to what extent. One user may want to remove chemotaxis and only let contact energy be modified between iterations.</p>
-
-<p>Another future task may be to allow specifying the initial configuration rather than having it randomly generated. This may be useful for situations where someone already has a system and wishes to know how to change this system in a way that results in self-organization.</p>
+<p>nother future task may be to make the system more configurable. Currently, there is no external control over which cell attributes are modified and to what extent. One user may want to remove chemotaxis and only let contact energy be modified between iterations. It may also be useful to specify the initial starting conditions rather than have them randomly generated each time.</p>
 
 <h3>
 <a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
