@@ -40,7 +40,8 @@ python "%PREFIX_CC3D%\pythonSetupScripts\envVarSanitizer.py" "PATH" >%TMP%\cc3dt
 cd %PREFIX_CC3D%
 
 @SET exit_code=0
-python %CURRENT_DIRECTORY%/simulation.py %CURRENT_DIRECTORY%
+mpiexec -n 4 python %CURRENT_DIRECTORY%/simulation.py %CURRENT_DIRECTORY%
+REM python %CURRENT_DIRECTORY%/simulation.py %CURRENT_DIRECTORY%
 @SET exit_code= %errorlevel%
 
 goto simulationend

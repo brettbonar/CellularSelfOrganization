@@ -214,6 +214,7 @@ def setComplexityPng(files, path):
   return (1 / (len(files) * (len(files) - 1))) * sumFiles
 
 def setComplexity(files, path):
+  return 1
   import math
   sumFiles = 0
   for file1 in files:

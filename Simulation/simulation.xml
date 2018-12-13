@@ -4,7 +4,7 @@
       <Steps>1010</Steps>
       <Temperature>10.0</Temperature>
       <NeighborOrder>2</NeighborOrder>
-      <RandomSeed>215933</RandomSeed>
+      <RandomSeed>61763</RandomSeed>
    </Potts>
    <Plugin Name="PlayerSettings">
       <VisualControl ScreenshotFrequency="1000"/>
@@ -15,8 +15,8 @@
       <CellType TypeId="2" TypeName="2"/>
    </Plugin>
    <Plugin Name="Volume">
-      <VolumeEnergyParameters CellType="1" LambdaVolume="10.5" TargetVolume="21"/>
-      <VolumeEnergyParameters CellType="2" LambdaVolume="15.0" TargetVolume="30"/>
+      <VolumeEnergyParameters CellType="1" LambdaVolume="14.5" TargetVolume="29"/>
+      <VolumeEnergyParameters CellType="2" LambdaVolume="14.0" TargetVolume="28"/>
    </Plugin>
    <Plugin Name="Surface">
       <SurfaceEnergyParameters CellType="1" LambdaSurface="2.0" TargetSurface="25"/>
@@ -24,27 +24,27 @@
    </Plugin>
    <Plugin Name="Contact">
       <Energy Type1="Medium" Type2="Medium">0.0</Energy>
-      <Energy Type1="Medium" Type2="1">13</Energy>
-      <Energy Type1="1" Type2="1">14</Energy>
-      <Energy Type1="1" Type2="2">8</Energy>
-      <Energy Type1="Medium" Type2="2">12</Energy>
-      <Energy Type1="2" Type2="2">10</Energy>
+      <Energy Type1="Medium" Type2="1">17</Energy>
+      <Energy Type1="1" Type2="1">24</Energy>
+      <Energy Type1="1" Type2="2">1</Energy>
+      <Energy Type1="Medium" Type2="2">6</Energy>
+      <Energy Type1="2" Type2="2">29</Energy>
       <NeighborOrder>2</NeighborOrder>
    </Plugin>
    <Plugin Name="Chemotaxis">
       <ChemicalField Name="FDS" Source="DiffusionSolverFE">
-         <ChemotaxisByType Lambda="20" Type="1"/>
+         <ChemotaxisByType Lambda="0" Type="1"/>
       </ChemicalField>
    </Plugin>
    <Steppable Type="DiffusionSolverFE">
       <DiffusionField Name="FDS">
          <DiffusionData>
             <FieldName>FDS</FieldName>
-            <GlobalDiffusionConstant>0.508987792859</GlobalDiffusionConstant>
-            <GlobalDecayConstant>0.606050363807</GlobalDecayConstant>
+            <GlobalDiffusionConstant>0.0526528628302</GlobalDiffusionConstant>
+            <GlobalDecayConstant>0.454989213357</GlobalDecayConstant>
          </DiffusionData>
          <SecretionData>
-            <Secretion Type="1">67.5758029746</Secretion>
+            <Secretion Type="1">16.504112028</Secretion>
          </SecretionData>
       </DiffusionField>
    </Steppable>
@@ -54,6 +54,6 @@
       <order>2</order>
       <types>1,2</types>
       <ncells>100</ncells>
-      <seed>785</seed>
+      <seed>273667</seed>
    </Steppable>
 </CompuCell3D>

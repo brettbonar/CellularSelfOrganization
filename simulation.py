@@ -22,6 +22,14 @@ import copy
 import setComplexity
 import time
 import shutil
+from mpi4py import MPI
+import shutil
+from array import array
+import numpy as np
+
+comm = MPI.COMM_WORLD
+size = comm.Get_size()
+rank = comm.Get_rank()
 
 def randomFloatStr(start, end):
   return str(random.uniform(start, end))
@@ -90,13 +98,12 @@ def updateSecretion(newNode):
   diffusionSolver = newNode.getFirstElement("Steppable", CC3DXML.MapStrStr({"Type": "DiffusionSolverFE"}))
   diffusionField = diffusionSolver.getFirstElement("DiffusionField")
   secretionData = diffusionField.getFirstElement("SecretionData")
-  nodes = secretionData.getElements("Secretion")
-  random.choice(nodes).updateElementValue(randomFloatStr(0.0, 100.0))
+  secretionData.getFirstElement("Secretion").updateElementValue(randomFloatStr(0.0, 100.0))
 
 def updateChemotaxisLambda(newNode):
   chemotaxis = newNode.getFirstElement("Plugin", CC3DXML.MapStrStr({"Name": "Chemotaxis"}))
   chemicalField = chemotaxis.getFirstElement("ChemicalField")
-  random.choice(chemicalField.getElements("ChemotaxisByType")).updateElementAttributes(CC3DXML.MapStrStr({"Lambda": getChemotaxisLambda()}))
+  chemicalField.getFirstElement("ChemotaxisByType").updateElementAttributes(CC3DXML.MapStrStr({"Lambda": getChemotaxisLambda()}))
   
 def updateChemicalFieldConstants(newNode):
   diffusionSolver = newNode.getFirstElement("Steppable", CC3DXML.MapStrStr({"Type": "DiffusionSolverFE"}))
@@ -177,15 +184,16 @@ def configureSimulation(config, path):
 
 def updateContact(newNode):
   max = 30
+  print("x")  
   contact = newNode.getFirstElement("Plugin", CC3DXML.MapStrStr({"Name": "Contact"}))
+  print("x")  
   # Allow updating contact energy between any two cell types except for Medium-Medium
-  nodes = [node for node in contact.getElements("Energy") if node.getAttribute("Type2") != "Medium"]
-  newContact = 0
+  node = contact.getFirstElement("Energy")
   if node.getAttribute("Type1") == "Medium":
     newContact = getMediumCellContact()
   else:
     newContact = getCellContact()
-  random.choice(nodes).updateElementValue(newContact)
+
 
 #def updateSurface(newNode):
 #  cellType = random.randint(1, numCellTypes)
@@ -204,10 +212,18 @@ def newSeed(node, path):
   newNode.saveXML(path + "/simulation.xml")
   return newNode
 
-def randomWalk(node, path):
+def writeSimulationFile(node, path):
   converter = Xml2Obj()
   newNode = converter.ParseString(node)
+  newNode.saveXML(path + "/simulation.xml")
 
+def randomWalk(node, path):
+  print("a")
+  converter = Xml2Obj()
+  print("a")
+  newNode = converter.ParseString(node)
+
+  print("a")
   if (newNode.getFirstElement("Plugin", CC3DXML.MapStrStr({"Name": "Chemotaxis"})) != None):
     choice = random.randint(1, 4)
     if choice == 1:
@@ -221,6 +237,7 @@ def randomWalk(node, path):
   else:
     updateContact(newNode)
   
+  print("e")
   # TRICKY: need to saveXML from here. For some reason saving after returning results in a blank file.
   newNode.saveXML(path + "/simulation.xml")
 
@@ -259,16 +276,14 @@ def invokeCommand(command):
     invokeCommand(command)
 
 def testNode(node, outputPath, simulationPath, iter):
-  numIterations = 4
-  files = []
-  for i in range(numIterations):
     newSeed(node, simulationPath)
-    savePath = outputPath + "/" + str(iter) + "-" + str(i)
+    savePath = outputPath + "/" + str(iter) + "-" + str(rank)
     command = environ["PREFIX_CC3D"] + "/compucell3d.bat --exitWhenDone -i " + simulationPath + "/simulation.cc3d -o " + savePath
-    #print(command)
     invokeCommand(command)
-    files.append(max(getFiles(savePath), key=os.path.getmtime))
-  return (setComplexity.setComplexity(files, path), files[0])
+    imageFile = max(getFiles(savePath), key=os.path.getmtime)
+    return imageFile
+    #return max(getFiles(savePath), key=os.path.getmtime))
+#  return (setComplexity.setComplexity(files, path), files[0])
 
 def writeBest(path, node, value, bestPng):
   bestFile = open(path + "/Best.txt", "a+")
@@ -294,33 +309,67 @@ def getNewConfig():
 def run(path):
   import time
   outputPath = path + "/Output/" + str(int(time.time()))
-  simulationPath = path + "/Simulation"
-  if not os.path.exists(outputPath):
-    os.makedirs(outputPath)
+  basePath = path + "/Simulation"
+  simulationPath = path + "/Simulation" + str(rank)
+  if not os.path.exists(simulationPath):
+    shutil.copytree(basePath, simulationPath)
 
   iteration = 0
+  currentNode = []
+  if rank == 0:
+    if not os.path.exists(outputPath):
+      os.makedirs(outputPath)
 
-  config = getNewConfig()
-  element = configureSimulation(config, simulationPath)
+    config = getNewConfig()
+    element = configureSimulation(config, simulationPath)
+    currentNode = element.CC3DXMLElement.getCC3DXMLElementString()
 
-  currentNode = element.CC3DXMLElement.getCC3DXMLElementString()
-  currentComplexity, imageFile = testNode(currentNode, outputPath, simulationPath, iteration)
+  currentNode = comm.bcast(currentNode, root = 0)
+  writeSimulationFile(currentNode, simulationPath)
+  sys.stdout.flush()
+  outFile = testNode(currentNode, outputPath, simulationPath, iteration)
+  files = comm.gather(outFile, root = 0)
+  sys.stdout.flush()
+  
+  currentComplexity = 0
+  imageFile = ""
+  if rank == 0:
+    currentComplexity, imageFile = (setComplexity.setComplexity(files, path), files[0])
+    writeBest(outputPath, currentNode, currentComplexity, imageFile)
+    writeComplexity(outputPath, currentComplexity)
 
-  writeBest(outputPath, currentNode, currentComplexity, imageFile)
-  writeComplexity(outputPath, currentComplexity)  
-
+  sys.stdout.flush()
   bestCount = 1 # number of iterations that best has not improved
+
   while bestCount < 20:
     iteration += 1
-    newNode = randomWalk(currentNode, simulationPath)
-    newComplexity, imageFile = testNode(newNode, outputPath, simulationPath, iteration)
-    writeComplexity(outputPath, newComplexity)
-    if (newComplexity > currentComplexity):
-      writeBest(outputPath, newNode, newComplexity, imageFile)
-      bestCount = 0
-      currentNode = newNode
-      currentComplexity = newComplexity
-    bestCount += 1
+    sys.stdout.flush()
+
+    sys.stdout.flush()
+    newNode = ""
+    if rank == 0:
+      newNode = randomWalk(currentNode, simulationPath)
+
+    sys.stdout.flush()
+    currentNode = comm.bcast(newNode, root = 0)
+    sys.stdout.flush()
+    writeSimulationFile(currentNode, simulationPath)
+    sys.stdout.flush()
+    outFile = testNode(currentNode, outputPath, simulationPath, iteration)
+    sys.stdout.flush()
+    files = comm.gather(outFile, root = 0)
+    sys.stdout.flush()
+
+    if rank == 0:
+      newComplexity, imageFile = (setComplexity.setComplexity(files, path), files[0])
+      writeComplexity(outputPath, newComplexity)
+      if (newComplexity > currentComplexity):
+        writeBest(outputPath, newNode, newComplexity, imageFile)
+        bestCount = 0
+        currentNode = newNode
+        currentComplexity = newComplexity
+      bestCount += 1
+    bestCount = comm.bcast(bestCount, root = 0)
 
   return currentNode
 

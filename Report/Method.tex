@@ -1,0 +1,24 @@
+This project implements a simple hill climber written in Python that works on a limited set of cellular behaviors from the CompuCell3D simulator. An evaluation of the set complexity of the simulated result of a biological system is used to determine self-organization and regularity (i.e. the fitness function).
+
+While CompuCell3D supports 3D cells, this simulation is limited to 2D for the purpose of simplicity and simulation speed. The CompuCell3D simulator supports a large number of cell attributes and behaviors. These have been narrowed down to a few variable parameters:
+
+\begin{itemize}
+	\item Contact (adhesion) energy between cells
+	\item Diffusion field parameters:
+		\subitem Decay rate
+		\subitem Diffusion constant
+		\subitem Secretion rate for each cell type
+	\item Chemotaxis for each cell type
+\end{itemize}
+
+The diffusion field and chemotaxis parameters are directly related. This project uses the CompuCell3D DiffusionSolverFE plugin to simulate chemotaxis. The secretion rate is the amount of chemical field that is secreted by each cell type. Chemotaxis then defines the rate at which cells are attracted to the chemical field. Chemotaxis is one of the most important and useful cellular properties for creating self-organizing biological systems.
+
+The hill climber begins with a random configuration of the above parameters in addition to a random number of cell types (currently just one or two) and random volume for each type of cell. Number of cell types and cell volume are not changed between iterations. The initial configuration is run through the CompuCell3D simulator four times with different random seeds to generate four distinct results. Each simulation is run for 1000 Monte Carlo Steps (MCS). Each MCS step is one iteration of the simulation. The set complexity is then calculated using the four final outputs as the set.
+
+The algorithm repeatedly performs a random walk on one of the variable parameters. If the resulting set complexity of the simulation is better than the previous best then this is taken as the new best result. This is repeated until no improvements have been made for a number of iterations, at which point the hill climber terminates and an XML file representing the latest best configuration is output.
+
+The method used to calculate set complexity is as given by Dr. Flann and adapted to use image compression techniques on Dr. Flann's advice. The calculation of set complexity depends on the Kolmogorov complexity of a set of objects (in this case images output by the simulator), which can be estimated by the Normalized Compression Distance (NCD). The NCD can be considered a measure of the similarity of two objects. NCD is maximized when both inputs are random or dissimilar and is minimized when both objects are identical.
+
+This implementation uses PNG compression on grayscale-converted images that are output by the CompuCell3D simulator. Images are concatenated for the NCD calculation by horizontally aligning them. There was a surprisingly significant difference in NCD results between vertical and horizontal concatenation. Horizontal concatenation was chosen because it gave a wider range of NCD values.
+
+The benefit of parallelization of this algorithm is the ability to simultaneously simulate different random seeds for the full 1000 MCS. The previous algorithm simulated each of the four seeds sequentially to get the final result, which required significantly more time to complete. These simulations make up the bulk of the runtime of the application and are easily parallelizable as they may be completed independent of one another.
